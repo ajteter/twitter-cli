@@ -27,6 +27,8 @@ dependencies = [
     "curl_cffi>=0.7",
     "xclienttransaction>=1.0.1",
     "beautifulsoup4>=4.12",
+    "mcp>=1.13,<2",
+    "uvicorn>=0.30",
 ]
 
 [project.optional-dependencies]
@@ -44,6 +46,7 @@ Issues = "https://github.com/jackwener/twitter-cli/issues"
 
 [project.scripts]
 twitter = "twitter_cli.cli:cli"
+twitter-mcp = "twitter_cli.mcp_server:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

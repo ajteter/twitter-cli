@@ -275,6 +275,19 @@ Mode behavior:
 - Use `--yaml` or `--json` for scripts and agent pipelines
 - Use `-c` / `--compact` when token efficiency matters more than completeness
 
+### Remote MCP Server
+
+twitter-cli can also run as a read-only remote MCP server for agents:
+
+```bash
+twitter-mcp
+```
+
+The HTTP MCP server is protected by `TWITTER_MCP_API_KEY` and uses
+`TWITTER_AUTH_TOKEN` + `TWITTER_CT0` from the VPS environment to access
+Twitter/X. See [Remote MCP Deployment](./docs/mcp-systemd.md) for the systemd
+and reverse proxy setup.
+
 ### Troubleshooting
 
 - `No Twitter cookies found`
@@ -588,6 +601,18 @@ score = likes_w * likes
 - 需要在表格里看完整正文时，使用 `--full-text`
 - 需要脚本消费时，优先使用 `--yaml` 或 `--json`
 - 需要节省 token 时，使用 `-c` / `--compact`
+
+### 远程 MCP Server
+
+twitter-cli 也可以作为只读远程 MCP server 给 agent 调用：
+
+```bash
+twitter-mcp
+```
+
+HTTP MCP server 通过 `TWITTER_MCP_API_KEY` 鉴权，并使用 VPS 环境变量里的
+`TWITTER_AUTH_TOKEN` + `TWITTER_CT0` 访问 Twitter/X。systemd 和反向代理部署
+步骤见 [Remote MCP Deployment](./docs/mcp-systemd.md)。
 
 ### 作为 AI Agent Skill 使用
 
