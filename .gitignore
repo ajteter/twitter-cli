@@ -9,3 +9,4 @@ build/
 !tests/fixtures/*.json
 !config.yaml
 .idea/
+.DS_Store
