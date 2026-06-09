@@ -121,9 +121,10 @@ def is_request_authorized(headers: Dict[str, str], api_keys: Iterable[str]) -> b
     if auth_header.lower().startswith(prefix):
         candidates.append(auth_header[len(prefix):].strip())
 
-    api_key_header = headers.get("x-api-key", "")
-    if api_key_header:
-        candidates.append(api_key_header.strip())
+    for header_name in ("x-api-key", "api-key", "api_key"):
+        api_key_header = headers.get(header_name, "")
+        if api_key_header:
+            candidates.append(api_key_header.strip())
 
     return any(
         hmac.compare_digest(candidate, key)

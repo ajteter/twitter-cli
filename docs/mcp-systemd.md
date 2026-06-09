@@ -120,6 +120,9 @@ or:
 X-API-Key: replace-with-a-random-long-secret
 ```
 
+The server also accepts `Api-Key` and `API_KEY` headers for clients with limited
+header naming options.
+
 ## Exposed Tools
 
 The server is read-only. It does not expose post, reply, like, retweet,

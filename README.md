@@ -286,7 +286,8 @@ twitter-mcp
 The HTTP MCP server is protected by `TWITTER_MCP_API_KEY` and uses
 `TWITTER_AUTH_TOKEN` + `TWITTER_CT0` from the VPS environment to access
 Twitter/X. See [Remote MCP Deployment](./docs/mcp-systemd.md) for the systemd
-and reverse proxy setup.
+and reverse proxy setup. Supported key headers are `Authorization: Bearer`,
+`X-API-Key`, `Api-Key`, and `API_KEY`.
 
 ### Troubleshooting
 
@@ -612,7 +613,8 @@ twitter-mcp
 
 HTTP MCP server 通过 `TWITTER_MCP_API_KEY` 鉴权，并使用 VPS 环境变量里的
 `TWITTER_AUTH_TOKEN` + `TWITTER_CT0` 访问 Twitter/X。systemd 和反向代理部署
-步骤见 [Remote MCP Deployment](./docs/mcp-systemd.md)。
+步骤见 [Remote MCP Deployment](./docs/mcp-systemd.md)。支持的 key header 是
+`Authorization: Bearer`、`X-API-Key`、`Api-Key` 和 `API_KEY`。
 
 ### 作为 AI Agent Skill 使用
 

@@ -53,6 +53,16 @@ class TestApiKeyAuth:
 
         assert mcp_server.is_request_authorized(headers, ("secret",))
 
+    def test_api_key_allows_matching_key(self) -> None:
+        headers = {"api-key": "secret"}
+
+        assert mcp_server.is_request_authorized(headers, ("secret",))
+
+    def test_api_key_with_underscore_allows_matching_key(self) -> None:
+        headers = {"api_key": "secret"}
+
+        assert mcp_server.is_request_authorized(headers, ("secret",))
+
     def test_wrong_key_is_rejected(self) -> None:
         headers = {"authorization": "Bearer wrong"}
 
