@@ -88,6 +88,10 @@ class ApiKeyOriginMiddleware:
             await _send_json_error(send, 401, "unauthorized")
             return
 
+        if scope.get("path") == "/health":
+            await _send_json_response(send, 200, _health_payload())
+            return
+
         await self._app(scope, receive, send)
 
 
@@ -142,7 +146,7 @@ def is_origin_allowed(origin: Optional[str], settings: McpSettings) -> bool:
     return origin.strip().rstrip("/") in settings.allowed_origins
 
 
-def create_mcp_server(path: str = DEFAULT_MCP_PATH) -> Any:
+def create_mcp_server(path: str = DEFAULT_MCP_PATH, settings: Optional[McpSettings] = None) -> Any:
     """Create and register the read-only FastMCP server."""
     try:
         from mcp.server.fastmcp import FastMCP
@@ -152,10 +156,11 @@ def create_mcp_server(path: str = DEFAULT_MCP_PATH) -> Any:
             "with its runtime dependencies."
         ) from exc
 
-    server = _new_fastmcp(
-        FastMCP,
-        McpSettings(path=_normalize_path(path), allowed_hosts=_default_allowed_hosts()),
+    settings = settings or McpSettings(
+        path=_normalize_path(path),
+        allowed_hosts=_default_allowed_hosts(),
     )
+    server = _new_fastmcp(FastMCP, settings)
 
     @server.tool()
     def health() -> Dict[str, Any]:
@@ -339,7 +344,7 @@ def create_asgi_app(settings: Optional[McpSettings] = None) -> Any:
     settings = settings or load_settings_from_env()
     _require_api_key(settings)
 
-    server = _create_mcp_server_from_settings(settings)
+    server = create_mcp_server(settings=settings)
     inner_app = server.streamable_http_app()
     return ApiKeyOriginMiddleware(inner_app, settings)
 
@@ -379,18 +384,6 @@ def _get_client() -> "TwitterClient":
         config.get("rateLimit"),
         cookie_string=cookies.get("cookie_string"),
     )
-
-
-def _create_mcp_server_from_settings(settings: McpSettings) -> Any:
-    try:
-        from mcp.server.fastmcp import FastMCP
-    except ImportError as exc:  # pragma: no cover - exercised only without dependency
-        raise RuntimeError(
-            "MCP support requires the 'mcp' package. Run `uv sync` or install twitter-cli "
-            "with its runtime dependencies."
-        ) from exc
-
-    return _new_fastmcp(FastMCP, settings)
 
 
 def _new_fastmcp(fastmcp_cls: Any, settings: McpSettings) -> Any:
@@ -530,7 +523,13 @@ def _headers_to_dict(headers: Iterable[Tuple[bytes, bytes]]) -> Dict[str, str]:
 
 
 async def _send_json_error(send: AsgiSend, status: int, code: str) -> None:
-    body = ('{"error":"%s"}' % code).encode("utf-8")
+    await _send_json_response(send, status, {"error": code})
+
+
+async def _send_json_response(send: AsgiSend, status: int, payload: Dict[str, Any]) -> None:
+    import json
+
+    body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
     await send(
         {
             "type": "http.response.start",
@@ -542,6 +541,17 @@ async def _send_json_error(send: AsgiSend, status: int, code: str) -> None:
         }
     )
     await send({"type": "http.response.body", "body": body})
+
+
+def _health_payload() -> Dict[str, Any]:
+    from . import __version__
+
+    return {
+        "status": "ok",
+        "server": "twitter-cli",
+        "version": __version__,
+        "transport": "streamable-http",
+    }
 
 
 def _load_api_keys_from_env() -> Tuple[str, ...]:

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
 from twitter_cli import mcp_server
@@ -94,6 +96,55 @@ class TestOriginChecks:
         settings = McpSettings(allow_any_origin=True)
 
         assert mcp_server.is_origin_allowed("https://anything.example.com", settings)
+
+
+class TestHealthEndpoint:
+    def test_create_asgi_app_uses_registered_mcp_server(self, monkeypatch) -> None:
+        calls = []
+
+        class FakeServer:
+            def streamable_http_app(self):
+                return "inner-app"
+
+        def fake_create_mcp_server(*, settings):
+            calls.append(settings)
+            return FakeServer()
+
+        monkeypatch.setattr(mcp_server, "create_mcp_server", fake_create_mcp_server)
+        settings = McpSettings(api_keys=("secret",), path="/mcp")
+
+        app = mcp_server.create_asgi_app(settings)
+
+        assert isinstance(app, mcp_server.ApiKeyOriginMiddleware)
+        assert calls == [settings]
+
+    def test_authenticated_health_path_returns_json(self) -> None:
+        async def inner_app(scope, receive, send):  # pragma: no cover - should not be reached
+            raise AssertionError("health should not call inner MCP app")
+
+        app = mcp_server.ApiKeyOriginMiddleware(inner_app, McpSettings(api_keys=("secret",)))
+        messages = []
+
+        async def receive():
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        async def send(message):
+            messages.append(message)
+
+        asyncio.run(
+            app(
+                {
+                    "type": "http",
+                    "path": "/health",
+                    "headers": [(b"x-api-key", b"secret")],
+                },
+                receive,
+                send,
+            )
+        )
+
+        assert messages[0]["status"] == 200
+        assert b'"server":"twitter-cli"' in messages[1]["body"]
 
 
 class TestToolInputNormalization:
