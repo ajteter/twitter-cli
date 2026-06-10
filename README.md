@@ -1,3 +1,21 @@
+# MCP 改造说明
+
+本 fork 已在原 CLI 能力之外增加远程只读 MCP server，便于部署在 VPS 上供 agent
+通过 Streamable HTTP 调用。
+
+- 启动命令：`twitter-mcp`
+- 默认 endpoint：`/mcp`
+- 默认监听：`127.0.0.1:8000`
+- MCP 访问鉴权：`TWITTER_MCP_API_KEY`
+- Twitter/X 访问凭据：VPS 环境变量 `TWITTER_AUTH_TOKEN` + `TWITTER_CT0`
+- 安全边界：只读工具，不暴露发推、回复、点赞、转推、关注、删除等写操作
+- 部署方式：systemd + Caddy/Nginx/Cloudflare 反向代理
+
+相关文档：
+
+- [MCP 改造报告](./docs/mcp-conversion-report.md)
+- [Remote MCP Deployment](./docs/mcp-systemd.md)
+
 # twitter-cli
 
 [![CI](https://github.com/jackwener/twitter-cli/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jackwener/twitter-cli/actions/workflows/ci.yml)
